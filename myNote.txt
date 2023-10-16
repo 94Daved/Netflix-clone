@@ -1,0 +1,151 @@
+
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+SLIDE-CAROUSEL: 
+
+"use client";
+
+import React, { useEffect, useState, useRef } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { arrayBuffer } from "stream/consumers";
+
+interface SlideCarouselProps {
+  children: React.ReactNode;
+  slideToShow: number;
+}
+
+const SlideCarousel = ({ children, slideToShow }: SlideCarouselProps) => {
+  const [Arrlength, setArrLength] = useState(4);
+  const [ElWidth, setElWidth] = useState(0);
+  const [ElHeight, setElHeight] = useState({});
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const cardRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      setArrLength(Array.from(cardRef.current?.children).length);
+      setElWidth(cardRef.current?.children[0].clientWidth);
+      setElHeight(cardRef.current?.children[0].clientHeight);
+    }
+
+    // console.log("Width", cardRef.current.children[0].clientWidth);
+    // console.log("Height", cardRef.current.children[0].clientHeight);
+  }, [slideToShow, children]);
+
+  const prevHanlder = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.preventDefault();
+
+    if (Arrlength < slideToShow) return;
+    if (currentIndex >= -(Arrlength - slideToShow) && currentIndex !== 0) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      setCurrentIndex(-(Arrlength - slideToShow));
+    }
+    // console.log("left slider", currentIndex, -(Arrlength - slideToShow));
+  };
+
+  const nextHanlder = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.preventDefault();
+    if (currentIndex > -(Arrlength - slideToShow)) {
+      setCurrentIndex(currentIndex - 1);
+    } else {
+      setCurrentIndex(0);
+    }
+  };
+
+  // console.log(ElHeight);
+
+  return (
+    <div
+      className="relative"
+      style={{
+        ...(ElHeight && { height: `${ElHeight}px` }),
+      }}
+    >
+      <div
+        className="flex overflow-x-hidden overflow-y-hidden h-full  transition-all duration-700"
+        style={{
+          ...(ElWidth && {
+            width: `${slideToShow * ElWidth + 20 * (slideToShow - 1)}px`,
+          }),
+          // ...(ElHeight && { height: `${ElHeight}px` }),
+        }}
+      >
+        <div className="" onClick={prevHanlder}>
+          <ArrowLeft className="absolute h-full w-[40px]  flex justify-center items-center bg-[gray] opacity-50 cursor-pointer z-40 active:bg-[gray] left-[0px] " />
+        </div>
+        <div
+          className="flex h-full gap-[20px] transition-all duration-700 "
+          style={{ transform: `translateX(${currentIndex * (ElWidth + 20)}px` }}
+          ref={cardRef}
+        >
+          {children}
+        </div>
+        <div className="arrow-right" onClick={nextHanlder}>
+          <ArrowRight className="absolute h-full w-[40px]  flex justify-center items-center bg-[gray] opacity-50 cursor-pointer z-40 active:bg-[gray] right-[0px] " />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SlideCarousel;
+
+
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+
+CATEGORY-SLIDER
+
+
+import React from "react";
+import SlideCarousel from "./slide-carousel";
+
+interface CategoryProps {
+  children: React.ReactNode;
+  category: string;
+  slideToShow: number;
+}
+
+const CategorySlide = ({ children, category, slideToShow }: CategoryProps) => {
+  return (
+    <div className="mt-[20px]">
+      <h1 className="text-[25px] font-medium">{category}</h1>
+      <SlideCarousel slideToShow={slideToShow}>{children}</SlideCarousel>
+    </div>
+  );
+};
+
+export default CategorySlide;
+
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+Spinner: https://mhnpd.github.io/react-loader-spinner/docs/intro
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+
+async function getData(genre: string) {
+  const res = await fetch(`http://localhost:3000/api/films?genre=${genre}`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json();
+}
+
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+400: nothing is sent from the client 
+401: unauthorized
+404: not found
+403: unauthenticated, trying to access a restricted resouce on server
+200: successful
+201: successful created
+500: internal error (server)
